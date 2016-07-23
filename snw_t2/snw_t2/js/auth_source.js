@@ -127,10 +127,28 @@ function SetUrlParameter(param_name, val) {
     parameter_table.setItem(param_name, val);
     UpdateUrlParameters();
 }
+function ClearUrlParameters() {
+    parameter_table.clear();
+    UpdateUrlParameters();
+}
 function RemoveUrlParameter(param_name) {
     parameter_table.removeItem(param_name);
     UpdateUrlParameters();
 }
+function GetUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
 function stringToByteArray(input) {
     var bytes = [];
     for (var i = 0; i < input.length; ++i) {
@@ -227,8 +245,8 @@ function beginAuthentication() {
     if (use_encryption == "True") {
 
         if (aes_decryption_token_received == 'False') {
-            aes_key_string = createrandompass(16);
-            aes_iv_string = createrandompass(16);
+            aes_key_string = createrandompass(16);//(128 / 8)
+            aes_iv_string = createrandompass(16);//////////
             $.jStorage.set("aes_key_string", aes_key_string);
             $.jStorage.set("aes_iv_string", aes_iv_string);
 
@@ -266,20 +284,7 @@ function beginAuthentication() {
     continue_after_auth();
 }
 
-var getUrlParameter = function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
 
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
-    }
-};
 
 function encrypt(message) {
     var encrypted = CryptoJS.AES.encrypt(message, CryptoJS.enc.Utf8.parse($.jStorage.get("aes_key_string")), { keySize: 128 / 8, iv: CryptoJS.enc.Utf8.parse($.jStorage.get("aes_iv_string")), padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC });
@@ -295,10 +300,12 @@ function getbetween(txt, srt, end) {
 }
 
 var iframe;
-function navigate(page_path) {
+
+function navigate_base(page_path, args) {
     if (use_encryption == "True") {
         if (aes_decryption_token_received == 'True') {
-
+            if (page_path.trim() == "" || page_path.trim() == "/")
+                page_path = "?";
             AjaxHelper.PostAsync("/api/page_provider", { path: encrypt(page_path) }, function (d) {
 
                 var raw_page = decrypt(d);
@@ -306,44 +313,40 @@ function navigate(page_path) {
                 var header = getbetween(raw_page, "<head>", "</head>");
                 $("head").html(header);
 
-                //   var edited_page = raw_page.replace("<html>", "").replace("</html>", "").replace("<body>", "").replace("</body>", "").replace(getbetween(raw_page, "<head>", "</head>"), "").replace("<head>", "").replace("</head>", "");
-
                 iframe.contentWindow.document.open();
                 iframe.contentWindow.document.write(raw_page);
                 iframe.contentWindow.document.close();
                 $(iframe).contents().find(document).trigger("ready");
+                if (page_path != "?")
+                    SetUrlParameter("wpg", page_path);
+                else
+                    RemoveUrlParameter("wpg");
 
-                SetUrlParameter("wpg", page_path);
-                // window.history.pushState("object or string", "Title", "?wpg=" + page_path);
+                if (args !== undefined) {
+                    for (var i = 0; i < args.length; i++) {
+                        SetUrlParameter(args[i].name, args[i].value);
+                    }
+                }
+
+                $(iframe).contents().find(document).trigger("ready");
             });
         }
     }
 }
+function navigateAbs(page_path) {
 
+    navigate_base(page_path);
+}
+function navigate(page_path, params) {
+    ClearUrlParameters();
+    navigate_base(page_path, params);
+}
 function continue_after_auth() {
-    if (getUrlParameter("wpg") === undefined) {
-        if (use_encryption == "True") {
-            if (aes_decryption_token_received == 'True') {
-                AjaxHelper.PostAsync("/api/page_provider", { path: encrypt("?") }, function (d) {
-
-                    var raw_page = decrypt(d);
-
-                    var header = getbetween(raw_page, "<head>", "</head>");
-                    $("head").html(header);
-
-                    //   var edited_page = raw_page.replace("<html>", "").replace("</html>", "").replace("<body>", "").replace("</body>", "").replace(getbetween(raw_page, "<head>", "</head>"), "").replace("<head>", "").replace("</head>", "");
-
-                    iframe.contentWindow.document.open();
-                    iframe.contentWindow.document.write(raw_page);
-                    iframe.contentWindow.document.close();
-                    SetUrlParameter("wpg", "index");
-                    $(iframe).contents().find(document).trigger("ready");
-                });
-            }
-        }
+    if (GetUrlParameter("wpg") === undefined) {
+        navigateAbs("/");
     }
     else
-        navigate(getUrlParameter("wpg"));
+        navigateAbs(GetUrlParameter("wpg"));
 }
 window.onpopstate = function (event) {
     continue_after_auth();
