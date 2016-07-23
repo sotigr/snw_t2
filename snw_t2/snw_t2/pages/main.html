@@ -1,0 +1,167 @@
+﻿<style>
+    #article_header_container:hover {
+        transition: background-color 0.3s ease;
+        background-color: #333;
+        cursor: pointer;
+    }
+
+    #pagenumber_edit_field {
+        background-color: transparent;
+        border: 1px solid rgba(0,0,0,0);
+    }
+
+        #pagenumber_edit_field:hover {
+            background-color: #555;
+        }
+</style>
+<div>
+    <!--   <iframe style="width:100%; height:200px;" src="https://www.youtube.com/embed/VC9b2E-imzw" frameborder="0"></iframe>-->
+    <div id="art_list"></div>
+    <div id="nav_btn_host" class="groupbox" style="display:none;">
+        <table style="width:100%;">
+            <tr>
+                <td style="width:33.333%">
+                    <input style="display:none;" id="prev_page_btn" type="button" value="Previous page" />
+                </td>
+                <td id="page_prev" style="width:33.333%; text-align:center;"></td>
+                <td style="width:33.333%">
+                    <input style="display:none;float:right;" id="next_page_btn" type="button" value="Next page" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script>
+        $('#art_list').html('<div style="width:100%;"><div style="width:40px; margin:0 auto; padding-top:20px; padding-bottom:20px;">' + SpinnerInit + '</div></div>');
+
+        var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        };
+        function CountMe(data) {
+            return $.map(data, function (n, i) { return i; }).length
+        }
+
+        var maxPage = 1;
+        var maxArticles = 5;
+        var currentPage;
+        if (getUrlParameter("p") !== undefined) {
+            currentPage = parseInt(getUrlParameter("p"));
+        }
+        else {
+            currentPage = 1;
+            if (currentPage == 1)
+                parent.RemoveUrlParameter("p");
+            else
+                parent.SetUrlParameter("p", currentPage);
+        }
+        function resizeInput() {
+            if ($(this).val() > maxPage)
+                $(this).val(maxPage);
+            if ($(this).val().length == 0)
+                $(this).attr('style', 'width:15px;');
+            else
+                $(this).attr('style', 'width:' + $(this).val().length * 8 + "px;");
+        }
+        function nav_art(artname)
+        {
+            parent.navigate('read', [{name: 'art_id', value: artname }]);
+        }
+        function loadArticles() {
+
+            AjaxHelper.GetAsync("/api/get_articles/" + currentPage + "/" + maxArticles, null, function (d) {
+
+                var datasize = d[CountMe(d) - 1]["count"];
+                maxPage = Math.round(datasize / maxArticles);
+                if (datasize % 2 != 0)
+                    maxPage += 1;
+                if (datasize % maxArticles > maxArticles)
+                    maxPage += 1;
+
+
+                var final = "";
+                $.each(d, function (key, value) {
+                    if (value.article_name !== undefined) {
+                        final += '<div class="groupbox"  style="margin-bottom:5px;"><t Control="header" id="article_header_container"  onclick = "nav_art(\'' + value.article_name + '\');"  >' + value.article_title + ' </t>';
+                        final += '<table style="width:100%;"><tr><td style="width:32px;"><div class="logo" onclick="redirect(\'/' + value.username + '\');" style="width:32px; height:32px; background-image:url(/api/getuserimage/' + value.owner_id + ')"></td><td> <table style="width:100%;"><tr><td style="width:20%;">Author: ' + value.username + '</td></tr><tr><td>Posted in: ' + value.date + ' </td></tr></table> </td></tr> </table>'
+
+                        final += '<p>' + value.article_desc + '</p>';
+                        final += '<div style="height:16px;"><a style="float:right;" onclick = "nav_art(\'' + value.article_name + '\');" >Read more...</a></div></div>';
+                    }
+                });
+                $('#art_list').html(final);
+                loadButtons();
+                $(".customScroll").mCustomScrollbar("scrollTo", "top");
+                $(".customScroll").scrollTop(0);
+                $("#page_prev").html("<input id=\"pagenumber_edit_field\" type=\"text\" value=\"" + currentPage + "\"/> / " + maxPage);
+                $('input[type="text"]')
+                 .keyup(resizeInput)
+                 .each(resizeInput);
+                $('#pagenumber_edit_field').keypress(function (e) {
+                    if (e.which == 13) {
+                        if ($('#pagenumber_edit_field').val() > maxPage)
+                            alert("The number you entered excedes the number of pages existing");
+                        else {
+                            currentPage = $('#pagenumber_edit_field').val();
+                            loadArticles();
+                            if (currentPage == 1)
+                                parent.RemoveUrlParameter("p");
+                            else
+                                parent.SetUrlParameter("p", currentPage);
+
+                        }
+                    }
+                });
+            });
+        }
+        function loadButtons() {
+            if (parseInt(currentPage) > 1) {
+                $("#prev_page_btn").css("display", "block");
+            }
+            else {
+                $("#prev_page_btn").css("display", "none");
+            }
+
+            if (parseInt(currentPage) < maxPage) {
+                $("#next_page_btn").css("display", "block");
+            }
+            else {
+                $("#next_page_btn").css("display", "none");
+            }
+
+            if ($("#next_page_btn").css("display") == "block" || $("#prev_page_btn").css("display") == "block")
+                $("#nav_btn_host").css("display", "block");
+            else
+                $("#nav_btn_host").css("display", "none");
+        }
+        loadArticles();
+
+        $('#prev_page_btn').on('click', function () {
+            currentPage -= 1;
+            loadArticles();
+            if (currentPage == 1)
+                parent.RemoveUrlParameter("p");
+            else
+                parent.SetUrlParameter("p", currentPage);
+
+
+        });
+        $('#next_page_btn').on('click', function () {
+            currentPage += 1;
+            loadArticles();
+            if (currentPage == 1)
+                parent.RemoveUrlParameter("p");
+            else
+                parent.SetUrlParameter("p", currentPage);
+        });
+    </script>
+</div>

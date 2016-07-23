@@ -1,0 +1,73 @@
+﻿<script>$('#page_title').html("SNW: Login.");</script>
+<div class="groupbox" style="margin:2px auto; max-width:400px;   ">
+    <div class="groupbox_light">
+        <t Control="header">Login</t>
+        <table align="center" style="width:50%; margin-bottom:5px;">
+            <tr>
+                <td><div>UserName: </div></td>
+            </tr>
+            <tr>
+                <td><input id="nickinp" type="text" style="width:100%;" autofocus /></td>
+            </tr>
+            <tr>
+                <td><div>Password: </div></td>
+            </tr>
+            <tr>
+                <td><input id="passinp" type="password" style="width:100%;" /></td>
+            </tr>
+        </table>
+        <div style="text-align:center;">
+            <input id="loginBtn" type="button" value="Login" />
+        </div>
+        <div style="text-align:right;">
+            <url href="/register">If you don't have an account click here.</url>
+        </div>
+    </div>
+  
+
+</div> 
+<script>
+  
+    var sidebar = new SideBar("Logging in"); 
+    $(document).ready(function () {
+        $('#mbtn_login').attr("istoggled", "true");
+    });
+
+    $('#loginBtn').on('click', login);
+    $('#passinp').keypress(function (e) {
+        if (e.which == 13) {
+            login();
+        }
+    });
+    function login() {
+        sidebar.ClearItems();
+        sidebar.AddItem(new SideBarItem("Please wait...", SpinnerInit, null, false));
+        sidebar.SetAutoHide(false);
+        sidebar.Show(); 
+        var nick, pass;
+        nick = $('#nickinp').val();
+        pass = $('#passinp').val();
+        if (nick != "" && pass != "" && pass.length >= 4) {
+            AjaxHelper.PostAsync('/api/login', { nick: parent.encrypt(nick), pass: parent.encrypt(md5(pass)) }, function (data) {
+                var ddata = parent.decrypt(data);
+                if (ddata == "1") {
+                    parent.location.href = "/";
+                }
+                else {
+                    sidebar.ClearItems();
+                    sidebar.AddItem(new SideBarItem("Error", ddata, null, false));
+                    sidebar.SetAutoHide(true); 
+                }
+            }, function () {
+                sidebar.ClearItems();
+                sidebar.AddItem(new SideBarItem("Error", "Connection error", null, false));
+                sidebar.SetAutoHide(true); 
+            });
+        }
+        else {
+            sidebar.ClearItems();
+            sidebar.AddItem(new SideBarItem("Error", "Username or password is not valid", null, false));
+            sidebar.SetAutoHide(true); 
+        }
+    }
+</script>

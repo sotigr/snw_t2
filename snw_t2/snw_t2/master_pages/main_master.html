@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title id="page_title"></title>
+    <meta charset="utf-8" />
+    <meta http-equiv="CACHE-CONTROL" content="NO-CACHE" />
+    <meta http-equiv="PRAGMA" content="NO-CACHE" />
+    <meta http-equiv="EXPIRES" content="-1" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" /> 
+    <link rel="stylesheet" type="text/css" href="/api/style_lib">
+</head>
+
+<body>
+
+    <script src="/api/script_lib"></script>
+      
+    <script>$('#page_title').html("Welcome to SNW.");</script>
+    <userinfo></userinfo>
+    <vars></vars>
+    <noscript>
+        <div style="text-align:center; width:200px;height:200px;" class="centerdiv">
+            <p>You need JavaScript to load this website!</p>
+            <p>=^.^=</p>
+        </div>
+    </noscript>
+    <div id="bg" style="position:absolute; z-index:-3; width:100%; height:100%;"></div>
+ 
+    <div style="z-index:100;" id="menu_host_mobile"> </div>
+
+    <div id="header">
+        <div style="height:69px;  border-bottom:1px solid rgba(255,255,255,0.1);">
+   
+            <div id="logo" style="background-image:url(/img/LOGO.png); cursor:pointer; right:10px; width:100px; height:70px; position:absolute; z-index:1;" onclick="location.href='/';" title="SNW Home"></div>
+            <div style="z-index:100;" id="menu_host"></div>
+        
+            </div>
+    </div>
+    <div id="scrollbox" class="customScroll" style="position:absolute; box-sizing:content-box; top:71px; left:0; width:100%; height:0; overflow:hidden;">
+
+        <div id="content_host">
+            <div id="shadow_div"  >
+                <div id="glow_div">
+                    <div style="overflow:hidden;">
+                        <mpcontent></mpcontent>
+                    </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+    <div id="footer">
+        <div style="border-top:1px solid rgba(255,255,255,0.1);">
+
+        </div>
+        <div style="float:right; font-size:9px; color:#777; margin-right:10px; margin-top:7px;">
+   
+        </div>
+        <div id="footer_text" style="float:left; font-size:9px; color:#777; margin-left:10px; margin-top:7px;">
+
+        </div>
+
+    </div>
+    <script>
+    
+ 
+        $("#footer_text").html("SNW " + new Date().getFullYear());
+        var m = new menu();
+
+        var homeitm = new menu_item("Home", "parent.navigate('/');");
+        m.add(homeitm);
+
+        if (typeof user_data_available !== 'undefined') {
+            if (user_data_available == 'True') {
+                if (user_data_security > 2) {
+                    var articleitm = new menu_item("Articles", null);
+                    articleitm.add(new menu_item("Publish article", "redirect('/cr_article');"));
+                    articleitm.add(new menu_item("Manage articles", "redirect('/manage_articles');"));
+                    articleitm.add(new menu_item("Upload file", "redirect('/filemanager');"));
+                    articleitm.add(new menu_item("Manage files", "redirect('/fileviewer');"));
+
+                    m.add(articleitm);
+                }
+            }
+        }
+
+        if (typeof user_data_available !== 'undefined') {
+            if (user_data_available == 'True') {
+                if (user_data_security > 2) {
+                    var adminmenu = new menu_item("Administrator", null);
+                    adminmenu.add(new menu_item("Ban account", null));
+                    adminmenu.add(new menu_item("Show all logged in users", null));
+                    adminmenu.add(new menu_item("Show session history", null));
+                    m.add(adminmenu);
+                }
+            }
+        }
+        var accountmenu;
+        if (typeof user_data_available !== 'undefined') {
+            if (user_data_available == 'True') {
+                accountmenu = new menu_item(user_data_nick, null);
+                accountmenu.add(new menu_item("Profile", "redirect('/profile');"));
+                accountmenu.add(new menu_item("Privacy settings", null));
+                accountmenu.add(new menu_item("Active sessions", null));
+                accountmenu.add(new menu_item("Logout", "AjaxHelper.PostAsync('/api/logout', {lg: parent.encrypt('logout')}, function(data){ if (data == '1'){parent.location.href = '/';}})"));
+            }
+            else {
+                accountmenu = new menu_item("Account", null);
+                accountmenu.add(new menu_item("Login", "redirect('/login');"));
+                accountmenu.add(new menu_item("Register", "redirect('/register');"));
+            }
+        }
+        else {
+            accountmenu = new menu_item("Account", null);
+            accountmenu.add(new menu_item("Login", "parent.navigate('login');"));
+            accountmenu.add(new menu_item("Register", "redirect('/register');"));
+        }
+        m.add(accountmenu);
+        var aboutmenu = new menu_item("About", "redirect('/about');");
+        m.add(aboutmenu);
+
+        if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+ 
+            $("#menu_host_mobile").css("position", "absolute");
+            $("#menu_host_mobile").css("top", "0");
+            $("#menu_host_mobile").css("left", "0");
+            $("#menu_host_mobile").css("width", "150px");
+            $("#menu_host_mobile").css("max-height", "100%");
+            $("#menu_host_mobile").css("overflow-y", "scroll");
+            $("#menu_host_mobile").css("overflow-x", "hidden");
+            m.draw("menu_host_mobile");
+        }
+        else {
+            m.draw("menu_host");
+        }
+
+
+
+        //Menu Init
+        $(document).ready(function () {
+            //Initializing main functions 
+            initMainLib(); 
+        });
+
+        function btnhome_Click() {
+            location.href = "/";
+        }
+        function btnoptions_Click() {
+            sub2.Show(100, 100);
+        }
+        function btnlogin_Click() {
+            location.href = "/login";
+        }
+        $('#scrollbox').css("top", "71px");
+        $('#scrollbox').css("height", (window.innerHeight - 100) + "px");
+        $(window).resize(function () {
+            $('#scrollbox').css("top", "71px");
+            $('#scrollbox').css("height", (window.innerHeight - 100) + "px");
+        });
+
+    </script>
+</body>
+</html>

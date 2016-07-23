@@ -1,0 +1,68 @@
+﻿<data></data>
+<div  >
+    <div id="spinner_container">
+
+    </div>
+    <div id="content_container_article_page" style="display:none;">
+        <table style="width:100%;">
+            <tr>
+
+                <td><t Control="header" id="art_title">Article Title</t> <t Control="header" id="art_grp" style="display:block;">Article Group</t></td>
+            </tr>
+        </table>
+
+
+        <div id="art_div" class="groupbox" style="padding:5px; overflow:hidden; cursor:text;">
+
+        </div>
+        <t Control="header">Publisher Info</t>
+        <div class="customScroll_listbox">
+
+            <table style="width:100%;">
+                <tr>
+                    <td style="width:64px;">
+                        <div id="user_img" class="logo" style="width:64px; height:64px;"></div>
+                    </td>
+                    <td>
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="width:10%;">
+                                    Publisher:
+                                </td>
+                                <td id="user_nick"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Email:
+                                </td>
+                                <td id="user_email" style="overflow-x:hidden;"></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</div>
+ 
+<script>
+    $('#spinner_container').html('<div style="width:100%;"><div style="width:40px; margin:0 auto; padding-top:20px; padding-bottom:20px;">' + SpinnerInit + '</div></div>');
+
+    $('#page_title').html("SNW: Article.");
+  
+    AjaxHelper.GetAsync("/api/get_article/" + parent.GetUrlParameter("art_id"), null, function (data) {
+        $('#spinner_container').remove();
+        $('#content_container_article_page').css("display", "block");
+        $("#art_title").html("Title: " + data.Title);
+        $('#page_title').html("SNW: " + data.Title);
+        $("#art_grp").html("Group: " + data.Group);
+        $("#art_div").html(data.Content);
+        $("#user_img").css("background-image", "url('" + "/api/getuserimage/" + data.Publisher.id + "')");
+        $("#user_email").html(data.Publisher.email);
+        $("#user_nick").html(data.Publisher.nick);
+        $("#user_img").on("click", function () {
+            location.href = "/" + data.Publisher.nick;
+        });
+    }); 
+</script>
