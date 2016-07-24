@@ -1,8 +1,10 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
+using Microsoft.CSharp;
 using OpenXmlPowerTools;
 using snw.core.system.backups;
 using snw.core.system.javascript;
 using System;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
@@ -25,7 +27,7 @@ namespace snw.core
         public static core.system.architect_crypt architect_cr;
         public static Dictionary<string, Dictionary<string, string>> locale;
         public static core.system.backups.BackupScheduler BackupSchedulerCurrent;
-        public static IDictionary<string, string[]> vplink; 
+        public static IDictionary<string, VirtualPageInfo> vplink; 
         public static bool RegularMatch(string pattern, string input) { return new Regex(pattern).Match(input).Success; }
     
         private List<SessionStateItemCollection> AllActiveSessions()
@@ -53,12 +55,26 @@ namespace snw.core
         }
         public static void AddVirtualPage(string virtualname, string literalpagename, string literalmasterpagename)
         {
-            vplink.Add(virtualname, new string[2] { literalpagename, literalmasterpagename });
+            vplink.Add(virtualname, new VirtualPageInfo { link = new string[2] { literalpagename, literalmasterpagename }, condition = null });
         }
         public static void AddVirtualPage(string virtualname, string literalpagename)
         {
-            vplink.Add(virtualname, new string[2] { literalpagename, null });
+            vplink.Add(virtualname, new VirtualPageInfo { link = new string[2] { literalpagename, null }, condition = null });
         }
+        public static void AddVirtualPage(string virtualname, string literalpagename, string literalmasterpagename, Func<Boolean> condition)
+        {
+            vplink.Add(virtualname, new VirtualPageInfo { link = new string[2] { literalpagename, literalmasterpagename }, condition = condition });
+        }
+        public static void AddVirtualPage(string virtualname, string literalpagename, Func<Boolean> condition )
+        {
+            vplink.Add(virtualname, new VirtualPageInfo { link = new string[2] { literalpagename, null }, condition = condition });
+        }
+
+        public struct VirtualPageInfo{
+            public string[] link;
+            public Func<Boolean> condition;
+        }
+        
         public static void UpdateUserInfo(string master_page_name)
         {
             if (HttpContext.Current.Session["user"] != null)
@@ -250,5 +266,8 @@ namespace snw.core
                 }
             }
         }
+    }
+    public struct str  {
+        public string value;
     }
 }

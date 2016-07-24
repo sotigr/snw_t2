@@ -96,7 +96,9 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="System.ServiceModel">
       <Private>True</Private>
     </Reference>
@@ -154,6 +156,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="pages\about.html" />
     <Content Include="pages\article_page.html" />
     <Content Include="pages\auth.html" />
     <Content Include="pages\login.html" />

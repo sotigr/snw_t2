@@ -106,16 +106,16 @@
             else {
                 accountmenu = new menu_item("Account", null);
                 accountmenu.add(new menu_item("Login", "redirect('/login');"));
-                accountmenu.add(new menu_item("Register", "redirect('/register');"));
+                //accountmenu.add(new menu_item("Register", "redirect('/register');"));
             }
         }
         else {
             accountmenu = new menu_item("Account", null);
             accountmenu.add(new menu_item("Login", "parent.navigate('login');"));
-            accountmenu.add(new menu_item("Register", "redirect('/register');"));
+           // accountmenu.add(new menu_item("Register", "redirect('/register');"));
         }
         m.add(accountmenu);
-        var aboutmenu = new menu_item("About", "redirect('/about');");
+        var aboutmenu = new menu_item("About", "parent.navigate('about');");
         m.add(aboutmenu);
 
         if ((/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {

@@ -19,7 +19,7 @@ namespace snw.Controllers
 {
     public class authController : ApiController
     {
-   
+
         [Route("api/dependencies")]
         [HttpGet]
         public HttpResponseMessage api_dependencies_js()
@@ -92,12 +92,29 @@ namespace snw.Controllers
                         return core.utility.architect_cr.ResponseNotFound();
                     else
                     {
-                        string[] plink = core.utility.vplink[path];
-                        if (plink[1] == null)
-                            return core.utility.architect_cr.ResponsePlain(plink[0]);
+                        bool flag = false;
+                 
+                        if (core.utility.vplink[path].condition != null)
+                        {
+                            if (core.utility.vplink[path].condition())
+                                flag = true;
+                        }
                         else
-                            return core.utility.architect_cr.ResponseWithMaster(plink[0], plink[1]); 
+                            flag = true;
+
+                        if (flag)
+                        {
+                            string[] plink = core.utility.vplink[path].link;
+                            if (plink[1] == null)
+                                return core.utility.architect_cr.ResponsePlain(plink[0]);
+                            else
+                                return core.utility.architect_cr.ResponseWithMaster(plink[0], plink[1]);
+                        }
+                        else
+
+                        return core.utility.architect_cr.ResponseForbidden();
                     }
+
                 }
                 return "";
             }

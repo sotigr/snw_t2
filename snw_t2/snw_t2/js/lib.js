@@ -428,7 +428,7 @@ function initMainLib() {
         $(this).attr("style", $(this).attr("style") + "background-image:url('" + $(this).attr("image") + "'); ");
     });
     $('url').on('click', function () {
-        redirect($(this).attr('href'));
+        parent.navigate($(this).attr('href'));
     });
 
     //Enable responsive menus
